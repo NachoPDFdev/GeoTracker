@@ -1,26 +1,41 @@
 <?php
-function geotracker_update_location(WP_REST_Request $request) {
-    $user = wp_get_current_user();
-
-    if (in_array('tecnico', (array) $user->roles)) {
-        $latitude = sanitize_text_field($request->get_param('latitude'));
-        $longitude = sanitize_text_field($request->get_param('longitude'));
-        $timestamp = current_time('mysql');
-
-        if ($latitude && $longitude) {
-            update_user_meta($user->ID, 'technician_latitude', $latitude);
-            update_user_meta($user->ID, 'technician_longitude', $longitude);
-            update_user_meta($user->ID, 'location_last_updated', $timestamp);
-
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("Location updated for user {$user->ID} - Latitude: $latitude, Longitude: $longitude");
+function tlt_render_technicians_table() {
+    ob_start();
+    ?>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+            <tr>
+                <th class="manage-column column-columnname" scope="col">Nombre</th>
+                <th class="manage-column column-columnname" scope="col">Latitud</th>
+                <th class="manage-column column-columnname" scope="col">Longitud</th>
+                <th class="manage-column column-columnname" scope="col">Última Actualización</th>
+                <th class="manage-column column-columnname" scope="col">Estado</th>
+                <th class="manage-column column-columnname" scope="col">Ver Más</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $tecnicos = get_users(array('role' => 'tecnico'));
+            foreach ($tecnicos as $user) {
+                $latitude = get_user_meta($user->ID, 'technician_latitude', true);
+                $longitude = get_user_meta($user->ID, 'technician_longitude', true);
+                $last_updated = get_user_meta($user->ID, 'location_last_updated', true);
+                $is_active = ($latitude && $longitude) ? '<span style="color: green;">✓ Activo</span>' : '<span style="color: red;">✗ Inactivo</span>';
+                $more_link = ($latitude && $longitude) ? '<a href="https://www.google.com/maps?q=' . $latitude . ',' . $longitude . '" target="_blank">Ver Más</a>' : 'N/A';
+                ?>
+                <tr>
+                    <td><?php echo esc_html($user->display_name); ?></td>
+                    <td><?php echo esc_html($latitude ?: 'Ubicación deshabilitada'); ?></td>
+                    <td><?php echo esc_html($longitude ?: 'Ubicación deshabilitada'); ?></td>
+                    <td><?php echo esc_html($last_updated ?: 'N/A'); ?></td>
+                    <td><?php echo $is_active; ?></td>
+                    <td><?php echo $more_link; ?></td>
+                </tr>
+                <?php
             }
-
-            return new WP_REST_Response('Location updated successfully', 200);
-        } else {
-            return new WP_REST_Response('Invalid data', 400);
-        }
-    } else {
-        return new WP_REST_Response('Unauthorized', 401);
-    }
+            ?>
+        </tbody>
+    </table>
+    <?php
+    return ob_get_clean();
 }
