@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: GEOTRACKER ALPHA V1.5
+Plugin Name: GEOTRACKER ALPHA 0.2
 Description: PLUGIN ALPHA PARA GESTION GPS DE USUARIOS
-Version: 1.5
+Version: 0.2
 Author: Daniel Videla Morales
 */
 
