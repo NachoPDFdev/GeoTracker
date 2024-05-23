@@ -1,12 +1,12 @@
 <?php
-function geotracker_toggle_location_shortcode() {
+function tlt_toggle_location_shortcode() {
     if (!is_user_logged_in() || !current_user_can('tecnico')) {
         return '';
     }
 
     ob_start();
     ?>
-    <div id="toggleLocationBtn">Prender/Apagar Mi Localización</div>
+    <button id="toggleLocationBtn" class="button button-secondary">Prender/Apagar Mi Localización</button>
     <div id="locationResult">
         <p>Estado: <span id="trackingStatus">Apagado</span></p>
         <p>Latitud: <span id="latitude"></span></p>
@@ -14,16 +14,16 @@ function geotracker_toggle_location_shortcode() {
         <p>Región: <span id="region"></span></p>
         <p><a id="mapsLink" href="" target="_blank">Ver en Google Maps</a></p>
     </div>
-
     <script>
         let tracking = false;
         let watchId;
+        let countdown = 10;
+        let countdownInterval = setInterval(updateCountdown, 1000);
 
         document.getElementById('toggleLocationBtn').addEventListener('click', function() {
             if (tracking) {
                 navigator.geolocation.clearWatch(watchId);
                 tracking = false;
-                document.getElementById('toggleLocationBtn').classList.remove('active');
                 document.getElementById('trackingStatus').textContent = 'Apagado';
                 document.getElementById('latitude').textContent = '';
                 document.getElementById('city').textContent = '';
@@ -34,7 +34,6 @@ function geotracker_toggle_location_shortcode() {
                 if (navigator.geolocation) {
                     watchId = navigator.geolocation.watchPosition(showPosition, showError, { enableHighAccuracy: true });
                     tracking = true;
-                    document.getElementById('toggleLocationBtn').classList.add('active');
                     document.getElementById('trackingStatus').textContent = 'Encendido';
                     sendNotification('Geolocalización encendida');
                 } else {
@@ -42,6 +41,16 @@ function geotracker_toggle_location_shortcode() {
                 }
             }
         });
+
+        function updateCountdown() {
+            countdown--;
+            if (countdown >= 0) {
+                document.getElementById('countdown').innerText = 'La tabla se actualizará en ' + countdown + ' segundos.';
+            }
+            if (countdown === 0) {
+                countdown = 10;
+            }
+        }
 
         function showPosition(position) {
             var latitude = position.coords.latitude;
@@ -58,7 +67,7 @@ function geotracker_toggle_location_shortcode() {
                 });
 
             // Envía la ubicación al servidor
-            fetch('<?php echo rest_url('geotracker/v1/update-location'); ?>', {
+            fetch('<?php echo rest_url('tlt/v1/update-location'); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,21 +107,63 @@ function geotracker_toggle_location_shortcode() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'action=geotracker_send_notification&message=' + encodeURIComponent(message)
+                body: 'action=tlt_send_notification&message=' + encodeURIComponent(message)
             });
         }
-
-        setInterval(refreshLocations, 10000); // Refresh every 10 seconds
-        let countdown = 10;
-        setInterval(function() {
-            countdown--;
-            if (countdown <= 0) {
-                countdown = 10;
-            }
-            document.getElementById('countdown').textContent = 'La tabla se actualizará en ' + countdown + ' segundos.';
-        }, 1000);
     </script>
     <?php
     return ob_get_clean();
 }
-add_shortcode('tlt_toggle_location', 'geotracker_toggle_location_shortcode');
+add_shortcode('tlt_toggle_location', 'tlt_toggle_location_shortcode');
+
+function tlt_technicians_table_shortcode() {
+    ob_start();
+    ?>
+    <div id="liveTechniciansTable"><?php echo tlt_render_technicians_table(); ?></div>
+    <script>
+        setInterval(function() {
+            fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=tlt_refresh_locations')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('liveTechniciansTable').innerHTML = html;
+                });
+        }, 10000); // Refresh every 10 seconds
+    </script>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('tlt_technicians_table', 'tlt_technicians_table_shortcode');
+
+function tlt_show_db_shortcode() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'usermeta';
+    $results = $wpdb->get_results("SELECT * FROM $table_name WHERE meta_key IN ('technician_latitude', 'technician_longitude', 'location_last_updated')", ARRAY_A);
+    
+    ob_start();
+    ?>
+    <table class="widefat fixed" cellspacing="0">
+        <thead>
+            <tr>
+                <th class="manage-column column-columnname" scope="col">User ID</th>
+                <th class="manage-column column-columnname" scope="col">Meta Key</th>
+                <th class="manage-column column-columnname" scope="col">Meta Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            foreach ($results as $row) {
+                ?>
+                <tr>
+                    <td><?php echo esc_html($row['user_id']); ?></td>
+                    <td><?php echo esc_html($row['meta_key']); ?></td>
+                    <td><?php echo esc_html($row['meta_value']); ?></td>
+                </tr>
+                <?php
+            }
+            ?>
+        </tbody>
+    </table>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('tlt_show_db', 'tlt_show_db_shortcode');
