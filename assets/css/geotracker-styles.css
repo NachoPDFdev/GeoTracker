@@ -1,0 +1,29 @@
+#toggleLocationBtn {
+    display: inline-block;
+    width: 200px;
+    height: 50px;
+    border-radius: 25px;
+    background-color: #ff4d4d; /* Initial color: red */
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+#toggleLocationBtn.active {
+    background-color: #4caf50; /* Active color: green */
+}
+
+#locationResult {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#locationResult p {
+    margin: 5px 0;
+}
