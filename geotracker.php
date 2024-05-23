@@ -17,6 +17,7 @@ require_once GEOTRACKER_PLUGIN_DIR . 'includes/geotracker-functions.php';
 require_once GEOTRACKER_PLUGIN_DIR . 'includes/geotracker-shortcodes.php';
 require_once GEOTRACKER_PLUGIN_DIR . 'includes/geotracker-scripts.php';
 require_once GEOTRACKER_PLUGIN_DIR . 'includes/geotracker-ajax.php';
+require_once GEOTRACKER_PLUGIN_DIR . 'includes/admin-page.php';
 
 // Inicializar el plugin
 register_activation_hook(__FILE__, array('GeoTracker', 'activate'));
