@@ -1,5 +1,16 @@
 # GeoTracker
 
+## Notas de la version 0.5 ##
+- Actualmente me encuentro (Daniel) en proceso de reordenar el codigo del plugin  ya que era solamente un archivo que contenía todo el codigo(technician-location-tracker.php), al pasarlo por el divisor para que lo conviertiese en varios archivos y carpetas presento distintos problemas. En esta version se intentara volver el codigo nuevamente funcional. Para ello se reordenara los archivos de la siguiente manera:
+ geotracker/
+├── assets/
+│   ├── css/
+│   │   └── styles.css
+│   └── js/
+│       └── scripts.js
+└── geotracker.php (anteriormente technician-location-tracker.php)
+
+
 **GeoTracker** es un plugin de WordPress diseñado para localizar a tus empleados en tiempo real. Este plugin permite a los técnicos activar o desactivar su ubicación y permite a los administradores ver la ubicación de todos los técnicos en un panel de administración.
 
 ## Características
